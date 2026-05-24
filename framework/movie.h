@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <string>
 #include "sprite.h"
+#include "sound.h"
 
 struct IMFDXGIDeviceManager;
 struct IMFMediaEngine;
@@ -10,7 +11,7 @@ struct IMFMediaEngine;
 class Movie : public Transform2D
 {
 public:
-    Movie(const XMFLOAT2& pos, const XMFLOAT2& size, float rotation, const XMFLOAT4& color, BLENDSTATE bstate, const wchar_t* filePath);
+    Movie(const XMFLOAT2& pos, float width, float rotation, const XMFLOAT4& color, BLENDSTATE bstate, const wchar_t* filePath);
     ~Movie();
 
     void Update();
@@ -20,12 +21,15 @@ public:
 
 private:
     bool Initialize(const wchar_t* filePath);
+    bool CreateVideoTexture(UINT width, UINT height);
     void Finalize();
 
     class MediaEngineNotify;
 
     XMFLOAT4 m_Color;
     BLENDSTATE m_BlendState;
+    SoundData* m_pAudio;
+    bool m_AudioStarted;
 
     IMFDXGIDeviceManager* m_pDXGIDeviceManager;
     struct IMFMediaEngine* m_pMediaEngine;

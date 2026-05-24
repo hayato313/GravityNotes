@@ -99,10 +99,12 @@ static std::wstring MakeFileUrl(const wchar_t* relativePath)
     return url;
 }
 
-Movie::Movie(const XMFLOAT2& pos, const XMFLOAT2& size, float rotation, const XMFLOAT4& color, BLENDSTATE bstate, const wchar_t* filePath)
-    : Transform2D(pos, rotation, size),
+Movie::Movie(const XMFLOAT2& pos, float width, float rotation, const XMFLOAT4& color, BLENDSTATE bstate, const wchar_t* filePath)
+    : Transform2D(pos, rotation, XMFLOAT2(width, width)),
       m_Color(color),
       m_BlendState(bstate),
+      m_pAudio(nullptr),
+      m_AudioStarted(false),
       m_pDXGIDeviceManager(nullptr),
       m_pMediaEngine(nullptr),
       m_pMediaEngineNotify(nullptr),
@@ -118,6 +120,41 @@ Movie::~Movie()
     Finalize();
 }
 
+bool Movie::CreateVideoTexture(UINT width, UINT height)
+{
+    ID3D11Device* pDevice = GetDevice();
+    if (!pDevice || width == 0 || height == 0) return false;
+
+    SafeReleaseCOM(m_pVideoSRV);
+    SafeReleaseCOM(m_pVideoTexture);
+
+    D3D11_TEXTURE2D_DESC texDesc{};
+    texDesc.Width = width;
+    texDesc.Height = height;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+
+    HRESULT hr = pDevice->CreateTexture2D(&texDesc, nullptr, &m_pVideoTexture);
+    if (FAILED(hr)) return false;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+    srvDesc.Format = texDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+    hr = pDevice->CreateShaderResourceView(m_pVideoTexture, &srvDesc, &m_pVideoSRV);
+    if (FAILED(hr))
+    {
+        SafeReleaseCOM(m_pVideoTexture);
+        return false;
+    }
+
+    return true;
+}
+
 bool Movie::Initialize(const wchar_t* filePath)
 {
     ID3D11Device* pDevice = GetDevice();
@@ -130,35 +167,6 @@ bool Movie::Initialize(const wchar_t* filePath)
     {
         pMultithread->SetMultithreadProtected(TRUE);
         pMultithread->Release();
-    }
-
-    const UINT videoTexW = 1920;
-    const UINT videoTexH = 1080;
-
-    D3D11_TEXTURE2D_DESC texDesc{};
-    texDesc.Width = videoTexW;
-    texDesc.Height = videoTexH;
-    texDesc.MipLevels = 1;
-    texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    texDesc.SampleDesc.Count = 1;
-    texDesc.Usage = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-
-    hr = pDevice->CreateTexture2D(&texDesc, nullptr, &m_pVideoTexture);
-    if (FAILED(hr)) {
-        Finalize();
-        return false;
-    }
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-    srvDesc.Format = texDesc.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
-    hr = pDevice->CreateShaderResourceView(m_pVideoTexture, &srvDesc, &m_pVideoSRV);
-    if (FAILED(hr)) {
-        Finalize();
-        return false;
     }
 
     hr = MFCreateDXGIDeviceManager(&m_DxgiResetToken, &m_pDXGIDeviceManager);
@@ -218,6 +226,15 @@ bool Movie::Initialize(const wchar_t* filePath)
     m_pMediaEngine->SetLoop(TRUE);
     m_pMediaEngine->SetMuted(TRUE);
 
+    m_pAudio = LoadMP3(filePath);
+    m_AudioStarted = false;
+
+    if (!CreateVideoTexture(1920, 1080))
+    {
+        Finalize();
+        return false;
+    }
+
     std::wstring videoUrl = MakeFileUrl(filePath);
     if (videoUrl.empty()) {
         Finalize();
@@ -239,11 +256,41 @@ bool Movie::Initialize(const wchar_t* filePath)
 
 void Movie::Update()
 {
-    if (!m_pMediaEngine || !m_pVideoTexture) return;
+    if (!m_pMediaEngine) return;
 
     if (!m_pMediaEngine->HasVideo()) return;
 
     if (m_pMediaEngine->GetReadyState() < MF_MEDIA_ENGINE_READY_HAVE_CURRENT_DATA) return;
+
+    if (!m_AudioStarted && m_pAudio)
+    {
+        PlaySound(m_pAudio, true);
+        m_AudioStarted = true;
+    }
+
+    DWORD nativeW = 0;
+    DWORD nativeH = 0;
+    if (SUCCEEDED(m_pMediaEngine->GetNativeVideoSize(&nativeW, &nativeH)) && nativeW > 0 && nativeH > 0)
+    {
+        const float aspect = static_cast<float>(nativeH) / static_cast<float>(nativeW);
+        m_Scale.y = m_Scale.x * aspect;
+
+        if (!m_pVideoTexture)
+        {
+            if (!CreateVideoTexture(nativeW, nativeH)) return;
+        }
+        else
+        {
+            D3D11_TEXTURE2D_DESC desc{};
+            m_pVideoTexture->GetDesc(&desc);
+            if (desc.Width != nativeW || desc.Height != nativeH)
+            {
+                if (!CreateVideoTexture(nativeW, nativeH)) return;
+            }
+        }
+    }
+
+    if (!m_pVideoTexture) return;
 
     LONGLONG pts = 0;
     HRESULT hr = m_pMediaEngine->OnVideoStreamTick(&pts);
@@ -251,9 +298,12 @@ void Movie::Update()
     {
         D3D11_TEXTURE2D_DESC desc{};
         m_pVideoTexture->GetDesc(&desc);
+
+        MFVideoNormalizedRect src = { 0.0f, 0.0f, 1.0f, 1.0f };
         RECT dst = { 0, 0, (LONG)desc.Width, (LONG)desc.Height };
-        MFARGB border = { 255, 0, 0, 0 };
-        hr = m_pMediaEngine->TransferVideoFrame(m_pVideoTexture, nullptr, &dst, &border);
+        MFARGB border = { 0, 0, 0, 255 };
+
+        hr = m_pMediaEngine->TransferVideoFrame(m_pVideoTexture, &src, &dst, &border);
         if (FAILED(hr))
         {
             SafeReleaseCOM(m_pVideoSRV);
@@ -263,6 +313,15 @@ void Movie::Update()
 
 void Movie::Finalize()
 {
+    m_AudioStarted = false;
+
+    if (m_pAudio)
+    {
+        StopSound(m_pAudio);
+        UnloadSound(m_pAudio);
+        m_pAudio = nullptr;
+    }
+
     if (m_pMediaEngineNotify)
     {
         m_pMediaEngineNotify->SetEngine(nullptr);

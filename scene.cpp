@@ -32,6 +32,9 @@ void Init(void)
 	case SCENE_DEBUG_LIGHTING:
 		DebugLightingScene_Initialize();
 		break;
+	case SCENE_DEBUG_SCORE:
+		Debugscore_Initialize();
+		break;
 	default:
 		break;
 	}
