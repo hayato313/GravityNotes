@@ -4,6 +4,8 @@
 // プロジェクト全体の定数定義ファイル
 //==============================================================================
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #define CLASS_NAME L"DirectX_Framework"
 #define WINDOW_CAPTION L"DirectX_Framework"
 #define SCREEN_WIDTH (1280.0f)	// UI要素の配置に使う（いままで通り）

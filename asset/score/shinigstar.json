@@ -1,0 +1,90 @@
+{
+  "bpm": 158.0,
+  "events": [
+    {
+      "beat": 0.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 1.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 2.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 3.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 4.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 5.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 6.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 7.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 8.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 9.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 10.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 11.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 12.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    },
+    {
+      "beat": 13.0,
+      "lane": 1,
+      "type": "Enemy",
+      "wall": "Down"
+    }
+  ],
+  "music": "maou_14_shining_star.mp3"
+}

@@ -122,7 +122,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)shader;$(ProjectDir);$(ProjectDir)framework;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)debugscene;$(ProjectDir)shader;$(ProjectDir)framework;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -143,7 +143,7 @@
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)shader;$(ProjectDir);$(ProjectDir)framework;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)debugscene;$(ProjectDir)shader;$(ProjectDir)framework;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -219,6 +219,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="result.h" />
+    <ClInclude Include="scoreloader.h" />
     <ClInclude Include="shader\shadermanager.h" />
     <ClInclude Include="shader\renderer.h" />
     <ClInclude Include="title.h" />

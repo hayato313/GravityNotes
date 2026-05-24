@@ -148,6 +148,9 @@
     <ClInclude Include="framework\debug_ostream.h">
       <Filter>フレームワーク\etc</Filter>
     </ClInclude>
+    <ClInclude Include="scoreloader.h">
+      <Filter>譜面読み込み</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="フレームワーク">
@@ -173,6 +176,9 @@
     </Filter>
     <Filter Include="デバッグ">
       <UniqueIdentifier>{7e4fabbe-3c88-465b-b068-446e0f159815}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="譜面読み込み">
+      <UniqueIdentifier>{4f4f56fd-3896-4ebe-9b6f-2b74a0767648}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
