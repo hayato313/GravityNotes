@@ -27,6 +27,7 @@ void Game_Initialize(void)
 	DebugCamera_Initialize();
 }
 
+
 void Game_Update(void)
 {
 	DebugCamera_Update();
