@@ -365,3 +365,6 @@ FodyWeavers.xsd
 *.cso
 *.bat
 .aider*
+
+# Claude Code personal settings
+.claude/CLAUDE.md

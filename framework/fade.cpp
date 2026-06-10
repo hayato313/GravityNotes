@@ -99,7 +99,7 @@ void Fade::Update()
 }
 
 // フェードアウト開始
-void Fade::StartFade(SCENE next)
+void Fade::SetSceneFade(SCENE next)
 {
 	if (m_State == FADE_NONE)
 	{
@@ -160,10 +160,10 @@ void Fade_Finalize(void)
 	}
 }
 
-void StartFade(SCENE ns)
+void SetSceneFade(SCENE ns)
 {
 	if (g_pFade) {
-		g_pFade->StartFade(ns);
+		g_pFade->SetSceneFade(ns);
 	}
 }
 

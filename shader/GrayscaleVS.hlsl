@@ -2,6 +2,8 @@
 
 void main(in VS_IN In, out PS_IN Out)
 {
+    Out = (PS_IN)0;
+
     //頂点変換(必ず必要)
     matrix wvp;                     //ワールドビュープロジェクション行列
     wvp = mul(World, View);         //wvp = World * View

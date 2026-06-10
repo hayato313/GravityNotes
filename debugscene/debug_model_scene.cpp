@@ -20,6 +20,7 @@
 #include "camera.h"
 #include "model.h"
 #include "sprite3d.h"
+#include "anim_sprite3d.h"
 #include "sprite2d.h"
 #include "billboard.h"
 #include "font.h"
@@ -28,6 +29,7 @@
 #include "define.h"
 #include "texture.h"
 #include "debugcamera.h"
+#include "debug_ostream.h"
 
 using namespace DirectX;
 
@@ -58,17 +60,87 @@ static FontRenderer* g_pControlHintFont = nullptr;
 
 // 床描画用
 static Billboard* g_pFloorBillboard = nullptr;
+static AnimSprite3D* g_pKirbyAnim = nullptr;
 
 // 配置パラメータ
 static const float MODEL_SPACING = 5.0f;  // モデル同士の間隔
 static const float LABEL_RANGE = 8.0f;  // この距離以内で名前を表示
+static const float RIM_LIGHT_BRIGHTNESS = 1.0f; // リムライトの明るさ（距離減衰なしの定数値で表現）
+static const float OUTLINE_WIDTH = 0.009f; // アウトラインの太さ
+// ShadowMapの調整値。Biasは影のちらつき防止、Brightnessは影になった場所の明るさ。
+static const float SHADOW_BIAS = 0.004f; // 影のちらつき防止用の深度補正
+static const float SHADOW_BRIGHTNESS = 0.55f; // 影になった部分の明るさ
 
 // 原点キューブ表示用
 static MODEL* g_pCubeModel = nullptr;
 static bool   g_ShowOriginCubes = false;
+static bool   g_AnimationKeyHeld[10] = {};
 
 // リロード用フラグ
 static bool g_ReloadRequested = false;
+
+static int GetTriggeredAnimationSlot()
+{
+	struct KeyPair
+	{
+		Keyboard_Keys mainKey;
+		Keyboard_Keys numpadKey;
+	};
+
+	static const KeyPair keyPairs[] = {
+		{ KK_D1, KK_NUMPAD1 },
+		{ KK_D2, KK_NUMPAD2 },
+		{ KK_D3, KK_NUMPAD3 },
+		{ KK_D4, KK_NUMPAD4 },
+		{ KK_D5, KK_NUMPAD5 },
+		{ KK_D6, KK_NUMPAD6 },
+		{ KK_D7, KK_NUMPAD7 },
+		{ KK_D8, KK_NUMPAD8 },
+		{ KK_D9, KK_NUMPAD9 },
+		{ KK_D0, KK_NUMPAD0 },
+	};
+
+	for (int i = 0; i < (int)ARRAYSIZE(keyPairs); i++)
+	{
+		bool isDown = Keyboard_IsKeyDown(keyPairs[i].mainKey) || Keyboard_IsKeyDown(keyPairs[i].numpadKey);
+		bool triggered = isDown && !g_AnimationKeyHeld[i];
+		g_AnimationKeyHeld[i] = isDown;
+		if (triggered)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static void TryPlayKirbyAnimationFromKey()
+{
+	if (!g_pKirbyAnim)
+	{
+		return;
+	}
+
+	int animSlot = GetTriggeredAnimationSlot();
+	if (animSlot < 0)
+	{
+		return;
+	}
+
+	unsigned int animCount = g_pKirbyAnim->GetAnimationCount();
+	if ((unsigned int)animSlot >= animCount)
+	{
+		return;
+	}
+
+	if (g_pKirbyAnim->PlayAnimationByIndex((unsigned int)animSlot, true))
+	{
+		g_pKirbyAnim->UpdateAnimation(0.0f);
+		const char* animName = g_pKirbyAnim->GetAnimationName((unsigned int)animSlot);
+		hal::dout << "[DebugModelScene] Play kirby animation index=" << animSlot
+			<< " name=" << (animName ? animName : "<noname>") << std::endl;
+	}
+}
 
 // ======================================================
 // asset\model フォルダを列挙して .fbx / .glb を集める
@@ -153,15 +225,42 @@ static void ReloadAllModels()
 void DebugModelScene_Initialize(void)
 {
 	// ライト
-	g_pAmbientLight = new AmbientLight(XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f));
+	g_pAmbientLight = new AmbientLight(XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f));
+	g_pFloorLight = new PointLight(
+		TRUE,
+		XMFLOAT4(0.0f, 5.0f, -5.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		50.0f,
+		1.0f
+	);
 
 	// 床用バッファ・テクスチャの作成
 	g_pFloorBillboard = new Billboard(XMFLOAT3(0.0f, -0.5f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(90.0f, 0.0f, 0.0f), "asset\\texture\\tex.png", false);
 	g_pFloorBillboard->SetBillboardMode(false);
+	// 床だけShadowReceiveシェーダーを使い、ShadowMapから影を受け取る。
+	g_pFloorBillboard->SetReceiveShadow(true);
 
 	// 原点表示用キューブモデルの読み込み
 	g_pCubeModel = ModelLoad("asset\\model\\cube.fbx");
 	g_ShowOriginCubes = false;
+	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++)
+	{
+		g_AnimationKeyHeld[i] = false;
+	}
+
+	g_pKirbyAnim = new AnimSprite3D(
+		{ 0.0f, -6.0f, 0.0f },
+		{ 1.0f, 1.0f, 1.0f },
+		{ 0.0f, 180.0f, 0.0f },
+		"asset\\model\\kirbyanim.fbx",
+		S_PHONG
+	);
+	if (g_pKirbyAnim)
+	{
+		g_pKirbyAnim->SetAnimationBlendDuration(0.2);
+		hal::dout << "[DebugModelScene] kirbyanim loaded. animationCount=" << g_pKirbyAnim->GetAnimationCount() << std::endl;
+	}
 
 	// モデル列挙
 	EnumerateModels();
@@ -209,6 +308,12 @@ void DebugModelScene_Update(void)
 		ReloadAllModels();
 	}
 
+	TryPlayKirbyAnimationFromKey();
+	if (g_pKirbyAnim)
+	{
+		g_pKirbyAnim->UpdateAnimation(1.0f / 60.0f);
+	}
+
 	// プレイヤー(カメラ)の更新
 	DebugCamera_Update();
 	SetCameraPosition(GetCamera()->GetPos());
@@ -238,6 +343,54 @@ void DebugModelScene_Draw(void)
 {
 	// 3D 描画
 	SetDepthEnable(true);
+	if (g_pFloorLight && g_pAmbientLight)
+	{
+		g_pFloorLight->Apply(*g_pAmbientLight);
+	}
+
+	// 1. ShadowMap作成パス
+	// ライト位置からシーンを見て、モデルの深度だけをShadowMapに保存する。
+	int shadowCols = 6;
+	int shadowRows = ((int)g_Entries.size() + shadowCols - 1) / shadowCols;
+	if (shadowRows < 1) shadowRows = 1;
+
+	// 展示モデル全体の中央あたりをライトが見るようにする。
+	float shadowCenterZ = (shadowRows - 1) * MODEL_SPACING * 0.5f;
+
+	XMFLOAT4 lightPositionValue = g_pFloorLight ? g_pFloorLight->GetPosition() : XMFLOAT4(0.0f, 5.0f, -5.0f, 1.0f);
+	XMVECTOR shadowCenter = XMVectorSet(0.0f, 0.0f, shadowCenterZ, 1.0f);
+	XMVECTOR shadowEye = XMLoadFloat4(&lightPositionValue);
+
+	// 今のShadowMapはライト位置から見た1枚のカメラ。
+	// PointLightの全方向影ではなく、この視野に入ったものだけが影を作る。
+	XMMATRIX lightView = XMMatrixLookAtLH(shadowEye, shadowCenter, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
+	float shadowFarZ = g_pFloorLight ? g_pFloorLight->GetRange() + 20.0f : 80.0f;
+	XMMATRIX lightProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(50.0f), 1.0f, 0.5f, shadowFarZ);
+
+	// ShadowReceiveシェーダーが同じライト視点で影判定できるように、行列をGPUへ渡す。
+	SetShadowMatrix(lightView * lightProjection, XMFLOAT4(SHADOW_BIAS, SHADOW_BRIGHTNESS, 0.0f, 0.0f));
+
+	// ここからEndShadowMapまでの描画は、画面ではなくShadowMapへ書かれる。
+	BeginShadowMap();
+	SetCullState(CULLSTATE_BACK);
+	for (int i = 0; i < (int)g_Entries.size(); i++)
+	{
+		if (g_Entries[i].pModel)
+		{
+			ModelDrawShadowMap(
+				g_Entries[i].pModel,
+				g_Entries[i].worldPos,
+				{ 0.0f, 0.0f, 0.0f },
+				{ 1.0f, 1.0f, 1.0f },
+				lightView,
+				lightProjection
+			);
+		}
+	}
+	SetCullState(CULLSTATE_NONE);
+
+	// ShadowMapへの書き込みを終えて、通常の画面描画に戻す。
+	EndShadowMap();
 
 	// --- 床の描画 ---
 	if (g_pFloorBillboard)
@@ -271,12 +424,45 @@ void DebugModelScene_Draw(void)
 	}
 
 	// 家具描画（展示モデル＋ビルボードアイコン含む）
+	/*SetParameter(XMFLOAT4(OUTLINE_WIDTH, 0.0f, 0.0f, 0.0f));
+	SetCullState(CULLSTATE_FRONT);
 	for (int i = 0; i < (int)g_Entries.size(); i++)
 	{
 		if (g_Entries[i].pModel)
 		{
-			ModelDraw(g_Entries[i].pModel, g_Entries[i].worldPos, {0,0,0}, {1,1,1});
+			ModelDraw(
+				g_Entries[i].pModel,
+				g_Entries[i].worldPos,
+				{ 0.0f, 0.0f, 0.0f },
+				{ 1.0f, 1.0f, 1.0f },
+				XMFLOAT4(0.02f, 0.025f, 0.035f, 1.0f),
+				true,
+				S_OUTLINE
+			);
 		}
+	}
+	SetCullState(CULLSTATE_NONE);*/
+
+	SetParameter(XMFLOAT4(RIM_LIGHT_BRIGHTNESS, 0.0f, 0.0f, 0.0f));
+	for (int i = 0; i < (int)g_Entries.size(); i++)
+	{
+		if (g_Entries[i].pModel)
+		{
+			ModelDraw(
+				g_Entries[i].pModel,
+				g_Entries[i].worldPos,
+				{ 0.0f, 0.0f, 0.0f },
+				{ 1.0f, 1.0f, 1.0f },
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+				false,
+				S_PHONG
+			);
+		}
+	}
+
+	if (g_pKirbyAnim)
+	{
+		g_pKirbyAnim->Draw();
 	}
 
 	// 原点キューブ描画
@@ -288,7 +474,10 @@ void DebugModelScene_Draw(void)
 				g_pCubeModel,
 				g_Entries[i].worldPos,
 				{ 0.0f, 0.0f, 0.0f },
-				{ 1.0f, 1.0f, 1.0f }
+				{ 1.0f, 1.0f, 1.0f },
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+				false,
+				S_PHONG
 			);
 		}
 	}
@@ -329,6 +518,7 @@ void DebugModelScene_Finalize(void)
 
 	// 床リソース解放
 	if (g_pFloorBillboard) { delete g_pFloorBillboard; g_pFloorBillboard = nullptr; }
+	if (g_pKirbyAnim) { delete g_pKirbyAnim; g_pKirbyAnim = nullptr; }
 
 	if (g_pModelNameFont) { delete g_pModelNameFont;   g_pModelNameFont = nullptr; }
 	if (g_pSubInfoFont) { delete g_pSubInfoFont;     g_pSubInfoFont = nullptr; }

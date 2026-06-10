@@ -37,7 +37,7 @@ public:
 	void Update();
 
 	// フェード開始
-	void StartFade(SCENE next = SCENE_NONE);
+	void SetSceneFade(SCENE next = SCENE_NONE);
 
 	// フェードイン開始
 	void StartFadeIn();
@@ -54,7 +54,7 @@ void Fade_Update(void);
 void Fade_Draw(void);
 void Fade_Finalize(void);
 
-void StartFade(SCENE ns = SCENE_NONE);
+void SetSceneFade(SCENE ns = SCENE_NONE);
 void Fade_StartIn(void);
 FADESTAT GetFadeState(void);
 

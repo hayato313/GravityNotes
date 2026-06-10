@@ -39,7 +39,6 @@ void DebugLightingScene_Initialize(void)
 	g_pMainLight = new PointLight(
 		TRUE,
 		{ 0.0f, 5.0f, -5.0f, 1.0f },
-		{ 0.0f, -1.0f, 0.5f, 0.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
 		20.0f,
 		1.0f
@@ -90,6 +89,7 @@ void DebugLightingScene_Draw(void)
 	g_pKirbyModel->Draw();
 
 	SetDepthEnable(false);
+
 	g_pMovie->Draw();
 
 }

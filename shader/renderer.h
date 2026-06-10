@@ -66,6 +66,14 @@ struct LIGHT
 	XMFLOAT4	PointLightParam;
 };
 
+// シャドウマップを読むためにシェーダーへ渡す定数。
+// LightViewProjection は「ライトから見た世界」に変換する行列。
+struct SHADOW_CONSTANT
+{
+	XMFLOAT4X4 LightViewProjection;
+	XMFLOAT4 Param;	// x:深度のずれ防止 y:影部分の明るさ z,w:ShadowMapの1テクセル分のUVサイズ
+};
+
 enum	BLENDSTATE
 {
 	BLENDSTATE_NONE = 0,	//ブレンドしない
@@ -76,7 +84,17 @@ enum	BLENDSTATE
 	BLENDSTATE_MAX
 };
 
+enum CULLSTATE
+{
+	CULLSTATE_NONE = 0,
+	CULLSTATE_FRONT,
+	CULLSTATE_BACK,
+
+	CULLSTATE_MAX
+};
+
 void SetBlendState(BLENDSTATE blend);
+void SetCullState(CULLSTATE cull);
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -104,6 +122,14 @@ void SetCameraPosition(XMFLOAT3 CameraPosition);
 
 void SetParameter(XMFLOAT4 Parameter);
 
+// ShadowMap用の行列と調整値をGPUへ送る。
+void SetShadowMatrix(XMMATRIX LightViewProjection, XMFLOAT4 Param);
+
+// ここから先の描画を、画面ではなくShadowMapへ書き込む。
+void BeginShadowMap(void);
+
+// ShadowMapへの描画を終えて、通常の画面描画へ戻す。
+void EndShadowMap(void);
 
 
 void SetMaterial( MATERIAL Material );

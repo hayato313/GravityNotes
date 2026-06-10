@@ -8,6 +8,7 @@
 #include "define.h"
 #include "renderer.h"
 #include "font.h"
+#include "fade.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -27,7 +28,7 @@ namespace
 	// --- レーン・座標 ---
 	constexpr float kLaneCenterX[4] = { SCREEN_WIDTH / 5 * 1, SCREEN_WIDTH / 5 * 2, SCREEN_WIDTH / 5 * 3, SCREEN_WIDTH / 5 * 4 }; // 各レーン（0〜3）の中心X座標
 	constexpr float kLaneCenterY = SCREEN_HEIGHT / 2;// 各レーン（0〜3）の中心Y座標
-	constexpr float kJudgementY = SCREEN_HEIGHT / 3 * 2; // 判定ラインのY座標
+	constexpr float kJudgementY = SCREEN_HEIGHT / 4 * 3; // 判定ラインのY座標
 	constexpr float kLaneWidth = 120.0f; // レーン背景の横幅
 
 	// --- ノーツサイズ ---
@@ -323,10 +324,20 @@ namespace
 	}
 }
 
+FontRenderer* g_pGuide;
+
 // デバッグスコアシーンの初期化処理
 // スコアデータの読み込み・スプライト生成・BGMロードを行う
 void Debugscore_Initialize(void)
 {
+	g_pGuide = new FontRenderer(
+		{ SCREEN_WIDTH / 2 ,30.0f },
+		30.0f,
+		0,
+		{ 1.0f, 1.0f, 1.0f, 0.7f },
+		"F,G,H,J : ノーツタップ / F1 : 頭出し / ESC : タイトルに戻る"
+	);
+
 	g_ElapsedTime = 0.0f;
 	g_BgmStarted = false;
 	g_JudgePopups.clear();
@@ -411,6 +422,10 @@ void Debugscore_Update(void)
 	{
 		TryJudgeLaneHit(GetLaneFromKey(KK_J), chartTime);
 	}
+	if (Keyboard_IsKeyDownTrigger(KK_ESCAPE))
+	{
+		SetSceneFade(SCENE_TITLE);
+	}
 
 	UpdateJudgePopups(deltaTime);
 
@@ -486,6 +501,8 @@ void Debugscore_Draw(void)
 		g_pErrorText->Draw();
 	}
 
+	g_pGuide->Draw();
+
 	Sprite_EndDraw2D();
 	SetDepthEnable(true);
 }
@@ -514,6 +531,10 @@ void Debugscore_Finalize(void)
 		delete g_pJudgePopupText;
 		g_pJudgePopupText = nullptr;
 	}
+
+	delete g_pGuide;
+	g_pGuide = nullptr;
+
 	g_Notes.clear();
 	g_JudgePopups.clear();
 	g_LaneSprites.clear();

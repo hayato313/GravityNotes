@@ -16,6 +16,8 @@
 
 using namespace DirectX;
 
+struct AnimationClip;
+
 // ボーン行列情報構造体
 struct BoneMatrices
 {
@@ -88,9 +90,10 @@ XMMATRIX AiMatrixToXMMatrix(const aiMatrix4x4& mat);
 MODEL* ModelLoad(const char* FileName);
 void ModelRelease(MODEL* model);
 void ModelDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const XMFLOAT4& color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), bool useColorReplace = false, SHADERTYPE shadertype = S_PHONG);
+void ModelDrawShadowMap(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, XMMATRIX lightView, XMMATRIX lightProjection);
 
 // アニメーション対応の描画関数
-void ModelAnimationDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const BoneMatrices& boneMatrices, const XMFLOAT4& color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), bool useColorReplace = false);
+void ModelAnimationDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const BoneMatrices& boneMatrices, const XMFLOAT4& color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), bool useColorReplace = false, SHADERTYPE shadertype = S_PHONG, const AnimationClip* clip = nullptr, double animTime = 0.0);
 
 XMFLOAT3 ModelGetSize(MODEL* model);
 XMFLOAT4 ModelGetAverageMaterialColor(MODEL* model);

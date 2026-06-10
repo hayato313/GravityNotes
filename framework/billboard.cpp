@@ -1,6 +1,7 @@
 ﻿#include "billboard.h"
 #include "renderer.h"
 #include "texture.h"
+#include "shadermanager.h"
 
 #include "Camera.h"
 #include <vector>
@@ -20,7 +21,8 @@ Billboard::Billboard()
 	m_UVAnimEnabled(false), m_UVFrameCount(1), m_UVCurrentFrame(0),
 	m_UVInterval(0.4f), m_UVTimer(0.0f),
 	m_IsBillboardMode(true),
-	m_WallFadeEnabled(true)
+	m_WallFadeEnabled(true),
+	m_ReceiveShadow(false)
 {
 	m_Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
@@ -32,7 +34,8 @@ Billboard::Billboard(XMFLOAT3 pos, XMFLOAT2 size, XMFLOAT3 rot, const char* text
 	m_UVAnimEnabled(false), m_UVFrameCount(1), m_UVCurrentFrame(0),
 	m_UVInterval(0.4f), m_UVTimer(0.0f),
 	m_IsBillboardMode(true),
-	m_WallFadeEnabled(true)
+	m_WallFadeEnabled(true),
+	m_ReceiveShadow(false)
 {
 	m_Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	CreateBuffer();
@@ -67,6 +70,7 @@ void Billboard::Initialize(XMFLOAT3 pos, XMFLOAT2 size, XMFLOAT3 rot, const char
 	m_UVTimer = 0.0f;
 	m_IsBillboardMode = true;
 	m_WallFadeEnabled = true;
+	m_ReceiveShadow = false;
 
 	// バッファ作成
 	CreateBuffer();
@@ -217,6 +221,14 @@ void Billboard::Draw(void)
 	SetProjectionMatrix(proj);
 
 	ID3D11DeviceContext* context = GetDeviceContext();
+
+	// 床など影を受けるBillboardだけ、ShadowReceiveシェーダーに切り替える。
+	// 通常のBillboardは今まで通りUnlitTextureで描く。
+	SHADERTYPE shaderType = m_ReceiveShadow ? S_SHADOW_RECEIVE : S_UNLIT;
+	context->IASetInputLayout(GetShader(shaderType)->GetVertexLayout());
+	context->VSSetShader(GetShader(shaderType)->GetVertexShader(), NULL, 0);
+	context->PSSetShader(GetShader(shaderType)->GetPixelShader(), NULL, 0);
+
 	UINT stride = sizeof(BILLBOARD_VERTEX);
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);

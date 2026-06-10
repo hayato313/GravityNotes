@@ -42,6 +42,21 @@ public:
 	PointLight(
 		BOOL     enable,
 		XMFLOAT4 position,
+		XMFLOAT4 diffuse,
+		float    range,
+		float    intensity)
+		: PointLight(
+			enable,
+			position,
+			XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f),
+			diffuse,
+			range,
+			intensity)
+	{}
+
+	PointLight(
+		BOOL     enable,
+		XMFLOAT4 position,
 		XMFLOAT4 direction,
 		XMFLOAT4 diffuse,
 		float    range,

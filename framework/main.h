@@ -32,6 +32,10 @@
 
 using namespace DirectX;
 
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(p) do { if ((p) != nullptr) { delete (p); (p) = nullptr; } } while (0)
+#endif
+
 //==================================
 //プロトタイプ宣言
 //==================================

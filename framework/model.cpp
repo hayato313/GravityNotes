@@ -2,6 +2,7 @@
 
 #include "model.h"
 #include "texture.h"
+#include "anim_sprite3d.h"
 
 #include "camera.h"
 #include "debug_ostream.h"
@@ -12,11 +13,239 @@
 #include <float.h>
 #include <algorithm>
 #include <map>
+#include <io.h>
+#include <cstddef>
 #include <cstring> // memcpy
 #include <windows.h> // GetFileAttributesA
 using namespace DirectX;
 
 static std::unordered_map<std::string, MODEL*> g_ModelCache;
+static ID3D11VertexShader* g_SkinningVertexShader = nullptr;
+static ID3D11InputLayout* g_SkinningVertexLayout = nullptr;
+static ID3D11Buffer* g_SkinningBoneBuffer = nullptr;
+
+static XMMATRIX QuatToMatrixForNodeAnimation(const XMFLOAT4& q)
+{
+	return XMMatrixRotationQuaternion(XMLoadFloat4(&q));
+}
+
+static std::string GetAssimpFbxBaseNameForNodeAnimation(const std::string& nodeName)
+{
+	static const char* suffixes[] = {
+		"_$AssimpFbx$_Translation",
+		"_$AssimpFbx$_Rotation",
+		"_$AssimpFbx$_Scaling",
+		"_$AssimpFbx$_PreRotation",
+		"_$AssimpFbx$_PostRotation",
+		"_$AssimpFbx$_RotationPivot",
+		"_$AssimpFbx$_RotationPivotInverse",
+		"_$AssimpFbx$_ScalingPivot",
+		"_$AssimpFbx$_ScalingPivotInverse",
+		"_$AssimpFbx$_RotationOffset",
+		"_$AssimpFbx$_ScalingOffset",
+		"_$AssimpFbx$_GeometricTranslation",
+		"_$AssimpFbx$_GeometricRotation",
+		"_$AssimpFbx$_GeometricScaling",
+	};
+
+	for (const char* suffix : suffixes)
+	{
+		size_t suffixLen = strlen(suffix);
+		if (nodeName.size() > suffixLen &&
+			nodeName.compare(nodeName.size() - suffixLen, suffixLen, suffix) == 0)
+		{
+			return nodeName.substr(0, nodeName.size() - suffixLen);
+		}
+	}
+
+	return "";
+}
+
+static void RenderAnimatedNodeRecursive(
+	MODEL* model,
+	aiNode* node,
+	XMMATRIX parentTransform,
+	const AnimationClip* clip,
+	double time,
+	const XMFLOAT4& color,
+	bool useColorReplace,
+	XMMATRIX worldTransform)
+{
+	std::string nodeName = node->mName.data;
+	XMMATRIX nodeTransform = AiMatrixToXMMatrix(node->mTransformation);
+
+	std::string baseName = GetAssimpFbxBaseNameForNodeAnimation(nodeName);
+	if (!baseName.empty() && model->NodeToAnimIndex.find(baseName) != model->NodeToAnimIndex.end())
+	{
+		nodeTransform = XMMatrixIdentity();
+	}
+
+	if (clip)
+	{
+		auto it = model->NodeToAnimIndex.find(nodeName);
+		if (it != model->NodeToAnimIndex.end())
+		{
+			int trackIdx = it->second;
+			if (trackIdx >= 0 && trackIdx < (int)clip->tracks.size())
+			{
+				const BoneKeyframes& kf = clip->tracks[trackIdx];
+				XMFLOAT3 trans = AnimSprite3D::InterpolateVec3(kf.trans, time);
+				XMFLOAT4 rot = AnimSprite3D::InterpolateQuat(kf.rot, time);
+				XMFLOAT3 scale = AnimSprite3D::InterpolateVec3(kf.scale, time);
+				if (kf.scale.empty())
+				{
+					scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+				}
+
+				nodeTransform = XMMatrixScaling(scale.x, scale.y, scale.z)
+					* QuatToMatrixForNodeAnimation(rot)
+					* XMMatrixTranslation(trans.x, trans.y, trans.z);
+			}
+		}
+	}
+
+	XMMATRIX currentTransform = nodeTransform * parentTransform;
+
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+	{
+		unsigned int meshIndex = node->mMeshes[i];
+
+		XMFLOAT4 finalColor;
+		if (useColorReplace)
+		{
+			finalColor = color;
+		}
+		else if (meshIndex < model->AiScene->mNumMeshes && model->MeshMaterials)
+		{
+			XMFLOAT4 meshColor = model->MeshMaterials[meshIndex].diffuseColor;
+			finalColor = XMFLOAT4(
+				meshColor.x * color.x,
+				meshColor.y * color.y,
+				meshColor.z * color.z,
+				meshColor.w * color.w
+			);
+		}
+		else
+		{
+			finalColor = color;
+		}
+
+		MATERIAL material = {};
+		material.Diffuse = finalColor;
+		material.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Emission = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+		material.Shininess = 50.0f;
+		SetMaterial(material);
+
+		ID3D11ShaderResourceView* textureToSet = model->MeshMaterials[meshIndex].textureView;
+		GetDeviceContext()->PSSetShaderResources(0, 1, &textureToSet);
+
+		UINT stride = sizeof(Vertex3D);
+		UINT offset = 0;
+		GetDeviceContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[meshIndex], &stride, &offset);
+		GetDeviceContext()->IASetIndexBuffer(model->IndexBuffer[meshIndex], DXGI_FORMAT_R32_UINT, 0);
+
+		SetWorldMatrix(currentTransform * worldTransform);
+
+		unsigned int indexCount = model->MeshIndexCounts[meshIndex];
+		if (indexCount > 0)
+		{
+			GetDeviceContext()->DrawIndexed(indexCount, 0, 0);
+		}
+	}
+
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	{
+		RenderAnimatedNodeRecursive(model, node->mChildren[i], currentTransform, clip, time, color, useColorReplace, worldTransform);
+	}
+}
+
+static bool EnsureSkinningResources()
+{
+	if (g_SkinningVertexShader && g_SkinningVertexLayout && g_SkinningBoneBuffer)
+	{
+		return true;
+	}
+
+	FILE* file = nullptr;
+	long int fsize = 0;
+
+	fopen_s(&file, "shader/shader_vertex_skinning.cso", "rb");
+	if (file == nullptr)
+	{
+		MessageBoxA(NULL, "shader/shader_vertex_skinning.cso", "Skinning Shader File Not Found", MB_OK);
+		return false;
+	}
+
+	fsize = _filelength(_fileno(file));
+	if (fsize <= 0)
+	{
+		fclose(file);
+		return false;
+	}
+
+	unsigned char* buffer = new unsigned char[fsize];
+	fread(buffer, fsize, 1, file);
+	fclose(file);
+
+	ID3D11Device* device = GetDevice();
+	if (!device)
+	{
+		delete[] buffer;
+		return false;
+	}
+
+	if (!g_SkinningVertexShader)
+	{
+		HRESULT hr = device->CreateVertexShader(buffer, fsize, nullptr, &g_SkinningVertexShader);
+		if (FAILED(hr))
+		{
+			delete[] buffer;
+			return false;
+		}
+	}
+
+	if (!g_SkinningVertexLayout)
+	{
+		D3D11_INPUT_ELEMENT_DESC layout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, (UINT)offsetof(VertexSkinned, position),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, (UINT)offsetof(VertexSkinned, normal),     D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (UINT)offsetof(VertexSkinned, color),      D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (UINT)offsetof(VertexSkinned, texCoord),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT,  0, (UINT)offsetof(VertexSkinned, boneIndex),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDWEIGHT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (UINT)offsetof(VertexSkinned, boneWeight), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		HRESULT hr = device->CreateInputLayout(layout, ARRAYSIZE(layout), buffer, fsize, &g_SkinningVertexLayout);
+		if (FAILED(hr))
+		{
+			delete[] buffer;
+			return false;
+		}
+	}
+
+	delete[] buffer;
+
+	if (!g_SkinningBoneBuffer)
+	{
+		D3D11_BUFFER_DESC bd;
+		ZeroMemory(&bd, sizeof(bd));
+		bd.Usage = D3D11_USAGE_DYNAMIC;
+		bd.ByteWidth = sizeof(XMMATRIX) * BoneMatrices::MAX_BONES;
+		bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+		HRESULT hr = device->CreateBuffer(&bd, nullptr, &g_SkinningBoneBuffer);
+		if (FAILED(hr))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
 
 // Assimpの行列をDirectXMath形式に変換
 // 両方とも行優先(row-major)だが、Assimpは列ベクトル方式(v' = M*v)で平行移動が4列目、
@@ -81,7 +310,13 @@ void RenderNode(MODEL* model, aiNode* node, XMMATRIX parentTransform, const XMFL
 			}
 		}
 		
-		(void)finalColor;
+		MATERIAL material = {};
+		material.Diffuse = finalColor;
+		material.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Emission = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+		material.Shininess = 50.0f;
+		SetMaterial(material);
 
 		// ワールド行列の設定（ノード変換 + モデルワールド変換を組み合わせ）
 		// RenderNode では親のModelDrawでWVPが設定されているが、ノードごとの変形を考慮
@@ -170,7 +405,13 @@ void RenderNodeAnimation(MODEL* model, aiNode* node, XMMATRIX parentTransform, c
 			}
 		}
 		
-		(void)finalColor;
+		MATERIAL material = {};
+		material.Diffuse = finalColor;
+		material.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Emission = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+		material.Shininess = 50.0f;
+		SetMaterial(material);
 
 		// テクスチャをシェーダーに設定
 		ID3D11ShaderResourceView* textureToSet = model->MeshMaterials[meshIndex].textureView;
@@ -431,8 +672,20 @@ MODEL* ModelLoad(const char* FileName)
 					vertex[v].texCoord = XMFLOAT2(0.5f, 0.5f);
 				}
 				
-				vertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-				
+				if (mesh->HasVertexColors(0))
+				{
+					vertex[v].color = XMFLOAT4(
+						mesh->mColors[0][v].r,
+						mesh->mColors[0][v].g,
+						mesh->mColors[0][v].b,
+						mesh->mColors[0][v].a
+					);
+				}
+				else
+				{
+					vertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+				}
+
 				// 法線が存在するかチェック
 				if (mesh->HasNormals())
 				{
@@ -488,7 +741,19 @@ MODEL* ModelLoad(const char* FileName)
 				else
 					skinVertex[v].texCoord = XMFLOAT2(0.5f, 0.5f);
 
-				skinVertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+				if (mesh->HasVertexColors(0))
+				{
+					skinVertex[v].color = XMFLOAT4(
+						mesh->mColors[0][v].r,
+						mesh->mColors[0][v].g,
+						mesh->mColors[0][v].b,
+						mesh->mColors[0][v].a
+					);
+				}
+				else
+				{
+					skinVertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+				}
 
 				if (mesh->HasNormals())
 					skinVertex[v].normal = XMFLOAT3(mesh->mNormals[v].x, mesh->mNormals[v].y, mesh->mNormals[v].z);
@@ -834,6 +1099,13 @@ void ModelRelease(MODEL* model)
 		aiReleaseImport(model->AiScene);
 
 	delete model;
+
+	if (g_ModelCache.empty())
+	{
+		SAFE_RELEASE(g_SkinningBoneBuffer);
+		SAFE_RELEASE(g_SkinningVertexLayout);
+		SAFE_RELEASE(g_SkinningVertexShader);
+	}
 }
 
 void ModelDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const XMFLOAT4& color, bool useColorReplace, SHADERTYPE shadertype)
@@ -876,7 +1148,39 @@ void ModelDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const X
 	RenderNode(model, model->AiScene->mRootNode, identity, finalColor, useColorReplace);
 }
 
-void ModelAnimationDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const BoneMatrices& boneMatrices, const XMFLOAT4& color, bool useColorReplace)
+void ModelDrawShadowMap(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, XMMATRIX lightView, XMMATRIX lightProjection)
+{
+	if (!model) return;
+
+	// 影を作るだけなので、ShadowMap専用シェーダーを使う。
+	// このシェーダーは色を出さず、深度バッファに距離だけを書き込む。
+	GetDeviceContext()->IASetInputLayout(GetShader(S_SHADOW_MAP)->GetVertexLayout());
+	GetDeviceContext()->VSSetShader(GetShader(S_SHADOW_MAP)->GetVertexShader(), NULL, 0);
+	GetDeviceContext()->PSSetShader(GetShader(S_SHADOW_MAP)->GetPixelShader(), NULL, 0);
+
+	XMMATRIX TranslationMatrix = XMMatrixTranslation(pos.x, pos.y, pos.z);
+	XMMATRIX RotationMatrix = XMMatrixRotationRollPitchYaw(
+		XMConvertToRadians(rot.x),
+		XMConvertToRadians(rot.y),
+		XMConvertToRadians(rot.z));
+	XMMATRIX ScalingMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
+
+	XMMATRIX World = ScalingMatrix * RotationMatrix * TranslationMatrix;
+
+	SetWorldMatrix(World);
+
+	// 通常描画ではカメラのView/Projectionを使うが、ここではライト視点の行列を使う。
+	SetViewMatrix(lightView);
+	SetProjectionMatrix(lightProjection);
+
+	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	XMMATRIX identity = XMMatrixIdentity();
+	// RenderNodeは通常描画と同じメッシュを描く。ShadowMapでは色やテクスチャは最終結果に使われない。
+	RenderNode(model, model->AiScene->mRootNode, identity, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), false);
+}
+
+void ModelAnimationDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale, const BoneMatrices& boneMatrices, const XMFLOAT4& color, bool useColorReplace, SHADERTYPE shadertype, const AnimationClip* clip, double animTime)
 {
 	if (!model) return;
 
@@ -894,17 +1198,55 @@ void ModelAnimationDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale
 	XMMATRIX ScalingMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
 
 	XMMATRIX worldMatrix = ScalingMatrix * RotationMatrix * TranslationMatrix;
+	ID3D11DeviceContext* context = GetDeviceContext();
+
+	bool useSkinningShader = model->HasSkinning && EnsureSkinningResources();
+	if (useSkinningShader)
+	{
+		context->IASetInputLayout(g_SkinningVertexLayout);
+		context->VSSetShader(g_SkinningVertexShader, nullptr, 0);
+
+		D3D11_MAPPED_SUBRESOURCE mapped;
+		if (SUCCEEDED(context->Map(g_SkinningBoneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+		{
+			memcpy(mapped.pData, boneMatrices.matrices, sizeof(XMMATRIX) * BoneMatrices::MAX_BONES);
+			context->Unmap(g_SkinningBoneBuffer, 0);
+			context->VSSetConstantBuffers(7, 1, &g_SkinningBoneBuffer);
+		}
+	}
+	else
+	{
+		context->IASetInputLayout(GetShader(shadertype)->GetVertexLayout());
+		context->VSSetShader(GetShader(shadertype)->GetVertexShader(), nullptr, 0);
+	}
+
+	context->PSSetShader(GetShader(shadertype)->GetPixelShader(), nullptr, 0);
 
 	SetWorldMatrix(worldMatrix);
 	SetViewMatrix(View);
 	SetProjectionMatrix(Projection);
 
-	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	XMFLOAT4 finalColor = color;
 	if (!useColorReplace)
 	{
 		finalColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+
+	if (!useSkinningShader && clip && !clip->tracks.empty() && !model->NodeToAnimIndex.empty())
+	{
+		RenderAnimatedNodeRecursive(
+			model,
+			model->AiScene->mRootNode,
+			XMMatrixIdentity(),
+			clip,
+			animTime,
+			finalColor,
+			useColorReplace,
+			worldMatrix
+		);
+		return;
 	}
 
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
@@ -928,20 +1270,33 @@ void ModelAnimationDraw(MODEL* model, XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale
 				meshFinalColor = finalColor;
 			}
 		}
-		(void)meshFinalColor;
+		MATERIAL material = {};
+		material.Diffuse = meshFinalColor;
+		material.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		material.Emission = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+		material.Shininess = 50.0f;
+		SetMaterial(material);
 
 		ID3D11ShaderResourceView* pSRV = model->MeshMaterials[m].textureView;
-		GetDeviceContext()->PSSetShaderResources(0, 1, &pSRV);
+		context->PSSetShaderResources(0, 1, &pSRV);
 
 		UINT stride = sizeof(Vertex3D);
 		UINT offset = 0;
-		GetDeviceContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
-		GetDeviceContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
+		ID3D11Buffer* vertexBuffer = model->VertexBuffer[m];
+		if (useSkinningShader && model->SkinnedVertexBuffer && model->SkinnedVertexBuffer[m])
+		{
+			vertexBuffer = model->SkinnedVertexBuffer[m];
+			stride = sizeof(VertexSkinned);
+		}
+
+		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
 		unsigned int indexCount = model->MeshIndexCounts[m];
 		if (indexCount > 0)
 		{
-			GetDeviceContext()->DrawIndexed(indexCount, 0, 0);
+			context->DrawIndexed(indexCount, 0, 0);
 		}
 	}
 }

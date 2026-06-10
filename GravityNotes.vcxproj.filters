@@ -22,9 +22,6 @@
     <ClCompile Include="framework\glb_model.cpp">
       <Filter>フレームワーク\3D</Filter>
     </ClCompile>
-    <ClCompile Include="framework\keyboard.cpp">
-      <Filter>フレームワーク\etc</Filter>
-    </ClCompile>
     <ClCompile Include="framework\main.cpp">
       <Filter>フレームワーク\etc</Filter>
     </ClCompile>
@@ -43,10 +40,6 @@
     <ClCompile Include="framework\texture.cpp">
       <Filter>フレームワーク\2D</Filter>
     </ClCompile>
-    <ClCompile Include="game.cpp" />
-    <ClCompile Include="result.cpp" />
-    <ClCompile Include="scene.cpp" />
-    <ClCompile Include="title.cpp" />
     <ClCompile Include="shader\renderer.cpp">
       <Filter>フレームワーク\シェーダー</Filter>
     </ClCompile>
@@ -65,8 +58,62 @@
     <ClCompile Include="debugscene\debugscore.cpp">
       <Filter>デバッグ</Filter>
     </ClCompile>
-    <ClCompile Include="mouse.cpp">
+    <ClCompile Include="player.cpp">
+      <Filter>SCENE_GAME\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="field.cpp">
+      <Filter>SCENE_GAME\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\imgui\imgui.cpp">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\imgui\imgui_draw.cpp">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\imgui\imgui_impl_dx11.cpp">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\imgui\imgui_impl_win32.cpp">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\imgui\imgui_tables.cpp">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\imgui\imgui_widgets.cpp">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="title.cpp">
+      <Filter>SCENE_TITLE</Filter>
+    </ClCompile>
+    <ClCompile Include="stageselect.cpp">
+      <Filter>SCENE_STAGESELECT</Filter>
+    </ClCompile>
+    <ClCompile Include="result.cpp">
+      <Filter>SCENE_RESULT</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>SCENE_GAME\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="scene.cpp">
       <Filter>フレームワーク\etc</Filter>
+    </ClCompile>
+    <ClCompile Include="mouse.cpp">
+      <Filter>フレームワーク\input</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\input_manager.cpp">
+      <Filter>フレームワーク\input</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\input_monitor_console.cpp">
+      <Filter>フレームワーク\input</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\gamepad.cpp">
+      <Filter>フレームワーク\input</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\keyboard.cpp">
+      <Filter>フレームワーク\input</Filter>
+    </ClCompile>
+    <ClCompile Include="debugscene\debugscene.cpp">
+      <Filter>デバッグ</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -100,9 +147,6 @@
     <ClInclude Include="framework\HoleSprite.h">
       <Filter>フレームワーク\2D</Filter>
     </ClInclude>
-    <ClInclude Include="framework\keyboard.h">
-      <Filter>フレームワーク\etc</Filter>
-    </ClInclude>
     <ClInclude Include="framework\main.h">
       <Filter>フレームワーク\etc</Filter>
     </ClInclude>
@@ -130,10 +174,6 @@
     <ClInclude Include="define.h">
       <Filter>フレームワーク\etc</Filter>
     </ClInclude>
-    <ClInclude Include="game.h" />
-    <ClInclude Include="result.h" />
-    <ClInclude Include="scene.h" />
-    <ClInclude Include="title.h" />
     <ClInclude Include="shader\renderer.h">
       <Filter>フレームワーク\シェーダー</Filter>
     </ClInclude>
@@ -158,8 +198,68 @@
     <ClInclude Include="debugscene\debugscore.h">
       <Filter>デバッグ</Filter>
     </ClInclude>
-    <ClInclude Include="mouse.h">
+    <ClInclude Include="player.h">
+      <Filter>SCENE_GAME\h</Filter>
+    </ClInclude>
+    <ClInclude Include="field.h">
+      <Filter>SCENE_GAME\h</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imconfig.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imgui_impl_dx11.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imgui_impl_win32.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imgui_internal.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imstb_rectpack.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imstb_textedit.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imstb_truetype.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\imgui\imgui.h">
+      <Filter>フレームワーク\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="title.h">
+      <Filter>SCENE_TITLE</Filter>
+    </ClInclude>
+    <ClInclude Include="stageselect.h">
+      <Filter>SCENE_STAGESELECT</Filter>
+    </ClInclude>
+    <ClInclude Include="result.h">
+      <Filter>SCENE_RESULT</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
+      <Filter>SCENE_GAME\h</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
       <Filter>フレームワーク\etc</Filter>
+    </ClInclude>
+    <ClInclude Include="mouse.h">
+      <Filter>フレームワーク\input</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\input_monitor_console.h">
+      <Filter>フレームワーク\input</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\input_manager.h">
+      <Filter>フレームワーク\input</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\keyboard.h">
+      <Filter>フレームワーク\input</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\gamepad.h">
+      <Filter>フレームワーク\input</Filter>
+    </ClInclude>
+    <ClInclude Include="debugscene\debugscene.h">
+      <Filter>デバッグ</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +290,30 @@
     <Filter Include="譜面読み込み">
       <UniqueIdentifier>{4f4f56fd-3896-4ebe-9b6f-2b74a0767648}</UniqueIdentifier>
     </Filter>
+    <Filter Include="フレームワーク\imgui">
+      <UniqueIdentifier>{9e8ef134-560e-4672-8c40-84b3777876a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SCENE_TITLE">
+      <UniqueIdentifier>{4e94fb04-9662-4340-99f9-1c1fea704fab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SCENE_STAGESELECT">
+      <UniqueIdentifier>{a055791a-7232-43a3-bdb8-9c6f84ac93bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SCENE_RESULT">
+      <UniqueIdentifier>{9a4b5d72-02c1-4f45-9065-7cf4a6712929}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="フレームワーク\input">
+      <UniqueIdentifier>{bac4b262-1b15-4645-bb16-9d1f3322cd89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SCENE_GAME">
+      <UniqueIdentifier>{a332fe49-7ef9-4e75-93cd-14f40959dd2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SCENE_GAME\cpp">
+      <UniqueIdentifier>{03dd0ae2-4ea6-4066-a287-294e1dabc386}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SCENE_GAME\h">
+      <UniqueIdentifier>{2846224a-66c3-4129-8854-60b8e97ccc87}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\Common.hlsl">
@@ -219,6 +343,33 @@
     <FxCompile Include="shader\PixelDirectionalLightingPS.hlsl">
       <Filter>フレームワーク\シェーダー</Filter>
     </FxCompile>
+    <FxCompile Include="shader\RimLightPS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\RimLightVS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\OutlinePS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\OutlineVS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\ShadowMapPS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\ShadowMapVS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\ShadowReceivePS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\ShadowReceiveVS.hlsl">
+      <Filter>フレームワーク\シェーダー</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\shader_vertex_skinning.hlsl">
+      <Filter>フレームワーク\3D</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="framework\DirectXTex.inl">
@@ -228,6 +379,9 @@
       <Filter>マークダウン</Filter>
     </None>
     <None Include="markdown\direct3d_viewport_resize_spec.md">
+      <Filter>マークダウン</Filter>
+    </None>
+    <None Include="markdown\shader_vertex_skinning_spec.md">
       <Filter>マークダウン</Filter>
     </None>
   </ItemGroup>

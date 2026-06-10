@@ -377,7 +377,10 @@ void AnimSprite3D::Draw(void)
 			GetScale(),
 			m_BoneMatrices,
 			drawColor,
-			shouldApplyColorReplace
+			shouldApplyColorReplace,
+			m_ShaderType,
+			m_AnimState.clip,
+			m_AnimState.time
 		);
 	}
 	else

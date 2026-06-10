@@ -88,7 +88,7 @@ void DebugCamera_Update(void)
 
 	if (Keyboard_IsKeyDownTrigger(KK_ESCAPE))
 	{
-		StartFade(SCENE_TITLE);
+		SetSceneFade(SCENE_TITLE);
 	}
 
 	// カメラ位置のシェーダー送信は削除

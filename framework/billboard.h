@@ -57,6 +57,11 @@ public:
 	void SetBillboardMode(bool enable) { m_IsBillboardMode = enable; }
 	bool GetBillboardMode(void) const { return m_IsBillboardMode; }
 
+	// trueにすると、このBillboardはShadowMapを読んで影を受ける。
+	// 今は床タイル用に使う。
+	void SetReceiveShadow(bool enable) { m_ReceiveShadow = enable; }
+	bool GetReceiveShadow(void) const { return m_ReceiveShadow; }
+
 private:
 	ID3D11Buffer* m_VertexBuffer;
 	ID3D11ShaderResourceView* m_Texture;
@@ -83,4 +88,5 @@ private:
 
 	bool m_IsBillboardMode;    // true=ビルボード、false=固定板ポリゴン
 	bool m_WallFadeEnabled;    // true=壁越しで半透明、false=壁越しでも不透明
+	bool m_ReceiveShadow;      // true=シャドウマップの影を受ける
 };
