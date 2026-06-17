@@ -9,15 +9,27 @@
 #include "mouse.h"
 #include "sound.h"
 #include "ClickFont.h"
+#include "Movie.h"
 
 using namespace DirectX;
 
 // ①インスタンス、ポインタ用意
 static Sprite2D* g_pTitleSprite = nullptr;
 static ClickFont* g_pChangeSceneText = nullptr;
+static Movie* g_pTitleMovie;
+
 
 void Title_Initialize(void)
 {
+	g_pTitleMovie = new Movie(
+		{ SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3 },					//位置
+		{ SCREEN_WIDTH },											//サイズ
+		0.0f,														//回転（度）
+		{ 1.0f,1.0f,1.0f, 1.0f },
+		BLENDSTATE_NONE,
+		L"asset\\movie\\nullmovie.mp4"
+	);
+
 	// ②各種初期化
 	g_pTitleSprite = new Sprite2D(
 		{ SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3 },					//位置
@@ -37,12 +49,18 @@ void Title_Initialize(void)
 		"[title.cpp] ステージセレクトへ"										//テキスト
 	);
 
+
+
 	UnLockMouse();//マウスアンロック
 }
+
+
 
 void Title_Update(void)
 {
 	//③処理
+	g_pTitleMovie->Update();
+
 	g_pChangeSceneText->Update();
 
 	//ClickFontがクリックされた
@@ -50,18 +68,27 @@ void Title_Update(void)
 	{
 		SetSceneFade(SCENE_STAGESELECT);
 	}
+
 }
 
 void Title_Draw(void)
 {
 	//④描画
+	g_pTitleMovie->Draw();
+
 	g_pTitleSprite->Draw();
 	g_pChangeSceneText->Draw();
+
 }
 
 void Title_Finalize(void)
 {
 	//⑤解放
+	delete g_pTitleMovie;
+	g_pTitleMovie = nullptr;
+
 	SAFE_DELETE(g_pTitleSprite);
 	SAFE_DELETE(g_pChangeSceneText);
+
+
 }

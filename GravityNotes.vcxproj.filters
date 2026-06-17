@@ -140,6 +140,9 @@
     <ClCompile Include="orb_note.cpp">
       <Filter>SCENE_GAME\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="debugscene\debugrigplayer.cpp">
+      <Filter>デバッグ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework\camera.h">
@@ -316,6 +319,9 @@
     <ClInclude Include="orb_note.h">
       <Filter>SCENE_GAME\h</Filter>
     </ClInclude>
+    <ClInclude Include="debugscene\debugrigplayer.h">
+      <Filter>デバッグ</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="フレームワーク">
@@ -445,5 +451,6 @@
     <None Include="markdown\shader_vertex_skinning_spec.md">
       <Filter>マークダウン</Filter>
     </None>
+    <None Include="markdown\anim_sprite3d_usage.md" />
   </ItemGroup>
 </Project>

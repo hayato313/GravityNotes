@@ -57,9 +57,9 @@ void DebugRigPlayer_Initialize(void)
 {
 	g_pRigPlayer = new AnimSprite3D(
 		{ 0.0f, -6.0f, 5.0f },
-		{ 1.0f, 1.0f, 1.0f },
-		{ 0.0f, 180.0f, 0.0f },
-		"asset\\model\\kirbyanim.fbx",
+		{ 0.1f, 0.1f, 0.1f },
+		{ 0.0f, 0.0f, 0.0f },
+		"asset\\model\\rigtest.fbx",
 		S_PHONG
 	);
 
