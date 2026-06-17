@@ -16,7 +16,7 @@ struct BILLBOARD_VERTEX
 
 Billboard::Billboard()
 	: m_Pos(0, 0, 0), m_Size(1, 1), m_Rot(0, 0, 0), m_IsDoubleSided(false),
-	m_Texture(nullptr), m_VertexBuffer(nullptr), m_VertexCount(0),
+	m_Texture(nullptr), m_NormalTexture(nullptr), m_VertexBuffer(nullptr), m_VertexCount(0),
 	m_IgnoreLighting(true),
 	m_UVAnimEnabled(false), m_UVFrameCount(1), m_UVCurrentFrame(0),
 	m_UVInterval(0.4f), m_UVTimer(0.0f),
@@ -29,7 +29,7 @@ Billboard::Billboard()
 
 Billboard::Billboard(XMFLOAT3 pos, XMFLOAT2 size, XMFLOAT3 rot, const char* texturePath, bool isDoubleSided)
 	: m_Pos(pos), m_Size(size), m_Rot(rot), m_IsDoubleSided(isDoubleSided),
-	m_Texture(nullptr), m_VertexBuffer(nullptr), m_VertexCount(0),
+	m_Texture(nullptr), m_NormalTexture(nullptr), m_VertexBuffer(nullptr), m_VertexCount(0),
 	m_IgnoreLighting(true),
 	m_UVAnimEnabled(false), m_UVFrameCount(1), m_UVCurrentFrame(0),
 	m_UVInterval(0.4f), m_UVTimer(0.0f),
@@ -47,11 +47,9 @@ Billboard::Billboard(XMFLOAT3 pos, XMFLOAT2 size, XMFLOAT3 rot, const char* text
 
 Billboard::~Billboard()
 {
-	if (m_VertexBuffer)
-	{
-		m_VertexBuffer->Release();
-		m_VertexBuffer = nullptr;
-	}
+	SAFE_RELEASE(m_VertexBuffer);
+	SAFE_RELEASE(m_Texture);
+	SAFE_RELEASE(m_NormalTexture);
 }
 
 // 初期化
@@ -71,6 +69,8 @@ void Billboard::Initialize(XMFLOAT3 pos, XMFLOAT2 size, XMFLOAT3 rot, const char
 	m_IsBillboardMode = true;
 	m_WallFadeEnabled = true;
 	m_ReceiveShadow = false;
+	SAFE_RELEASE(m_NormalTexture);
+	m_NormalTexturePath.clear();
 
 	// バッファ作成
 	CreateBuffer();
@@ -84,6 +84,7 @@ void Billboard::SetTexture(const char* texturePath)
 		std::string strPath(texturePath);
 		// 同じパスが既にロード済みなら再ロードしない
 		if (m_Texture && m_TexturePath == strPath) return;
+		SAFE_RELEASE(m_Texture);
 		m_TexturePath = strPath;
 		std::wstring wstrPath(strPath.begin(), strPath.end());
 		m_Texture = LoadTexture(wstrPath.c_str());
@@ -91,7 +92,28 @@ void Billboard::SetTexture(const char* texturePath)
 	else
 	{
 		m_TexturePath.clear();
-		m_Texture = nullptr;
+		SAFE_RELEASE(m_Texture);
+	}
+}
+
+void Billboard::SetNormalMap(const char* texturePath)
+{
+	if (texturePath)
+	{
+		std::string strPath(texturePath);
+		// 同じNormalMapを設定済みなら読み直さない。
+		if (m_NormalTexture && m_NormalTexturePath == strPath) return;
+		SAFE_RELEASE(m_NormalTexture);
+		m_NormalTexturePath = strPath;
+		std::wstring wstrPath(strPath.begin(), strPath.end());
+
+		// NormalMapは色ではなく法線データなので、線形テクスチャとして読み込む。
+		m_NormalTexture = LoadTextureLinear(wstrPath.c_str());
+	}
+	else
+	{
+		m_NormalTexturePath.clear();
+		SAFE_RELEASE(m_NormalTexture);
 	}
 }
 
@@ -222,9 +244,11 @@ void Billboard::Draw(void)
 
 	ID3D11DeviceContext* context = GetDeviceContext();
 
-	// 床など影を受けるBillboardだけ、ShadowReceiveシェーダーに切り替える。
+	// 床など影を受けるBillboardだけ、ShadowReceive系シェーダーに切り替える。
+	// NormalMapがある場合は、影 + NormalMapライト計算ができる専用シェーダーを使う。
 	// 通常のBillboardは今まで通りUnlitTextureで描く。
-	SHADERTYPE shaderType = m_ReceiveShadow ? S_SHADOW_RECEIVE : S_UNLIT;
+	bool useNormalMap = m_ReceiveShadow && m_NormalTexture;
+	SHADERTYPE shaderType = useNormalMap ? S_NORMAL_MAP_SHADOW_RECEIVE : (m_ReceiveShadow ? S_SHADOW_RECEIVE : S_UNLIT);
 	context->IASetInputLayout(GetShader(shaderType)->GetVertexLayout());
 	context->VSSetShader(GetShader(shaderType)->GetVertexShader(), NULL, 0);
 	context->PSSetShader(GetShader(shaderType)->GetPixelShader(), NULL, 0);
@@ -233,9 +257,18 @@ void Billboard::Draw(void)
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// t0: 通常の色テクスチャ。
 	context->PSSetShaderResources(0, 1, &m_Texture);
+	if (useNormalMap)
+	{
+		// t2: NormalMap。t1はShadowMapが使っているため空けている。
+		context->PSSetShaderResources(2, 1, &m_NormalTexture);
+	}
 
 	context->Draw(m_VertexCount, 0);
 
+	// 次に描く別のシェーダーへNormalMapが残らないよう、t2だけ外しておく。
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	context->PSSetShaderResources(2, 1, &nullSRV);
 	SetDepthEnable(true); // 常に戻す
 }

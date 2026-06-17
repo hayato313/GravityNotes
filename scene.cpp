@@ -10,7 +10,8 @@
 #include "define.h"
 using namespace DirectX;
 
-static SCENE scene = SCENE_TITLE;
+static SCENE scene = SCENE_GAME;
+static std::string playjson;
 
 void Init( void )
 {
@@ -120,4 +121,14 @@ void SetScene( SCENE id )
 SCENE GetScene( void )
 {
 	return scene;
+}
+
+void SetPlayJson(const std::string& jsonName)
+{
+	playjson = jsonName;
+}
+
+const std::string& GetPlayJson(void)
+{
+	return playjson;
 }

@@ -5,14 +5,16 @@
 #include <cstdint>
 #include <string>
 
-ID3D11ShaderResourceView* LoadTexture(const wchar_t* texpass)
+namespace
+{
+ID3D11ShaderResourceView* LoadTextureWithFlags(const wchar_t* texpass, WIC_FLAGS flags)
 {
 	TexMetadata metadata;
 	ScratchImage image;
 	ID3D11ShaderResourceView* g_Texture = nullptr;
 
-	// 標準的な方法でロード（戻り値をチェック）
-	HRESULT hr = LoadFromWICFile(texpass, WIC_FLAGS_FORCE_SRGB, &metadata, image);
+	// flagsで「色テクスチャとして読むか」「データテクスチャとして読むか」を切り替える。
+	HRESULT hr = LoadFromWICFile(texpass, flags, &metadata, image);
 	if (FAILED(hr))
 	{
 		return nullptr;
@@ -40,8 +42,26 @@ ID3D11ShaderResourceView* LoadTexture(const wchar_t* texpass)
 	
 	return g_Texture;
 }
+}
+
+ID3D11ShaderResourceView* LoadTexture(const wchar_t* texpass)
+{
+	// 通常の絵のテクスチャは色なので、sRGBとして読み込む。
+	return LoadTextureWithFlags(texpass, WIC_FLAGS_FORCE_SRGB);
+}
 
 ID3D11ShaderResourceView* LoadTexture(const std::wstring& texpass)
 {
 	return LoadTexture(texpass.c_str());
+}
+
+ID3D11ShaderResourceView* LoadTextureLinear(const wchar_t* texpass)
+{
+	// NormalMapはRGBを法線データとして使うため、sRGB補正をかけずにそのまま読む。
+	return LoadTextureWithFlags(texpass, WIC_FLAGS_IGNORE_SRGB);
+}
+
+ID3D11ShaderResourceView* LoadTextureLinear(const std::wstring& texpass)
+{
+	return LoadTextureLinear(texpass.c_str());
 }

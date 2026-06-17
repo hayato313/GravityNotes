@@ -8,3 +8,5 @@ using namespace DirectX;
 
 ID3D11ShaderResourceView* LoadTexture(const wchar_t* texpass);
 ID3D11ShaderResourceView* LoadTexture(const std::wstring& texpass);
+ID3D11ShaderResourceView* LoadTextureLinear(const wchar_t* texpass);
+ID3D11ShaderResourceView* LoadTextureLinear(const std::wstring& texpass);

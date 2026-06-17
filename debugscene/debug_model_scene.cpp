@@ -235,10 +235,12 @@ void DebugModelScene_Initialize(void)
 	);
 
 	// 床用バッファ・テクスチャの作成
-	g_pFloorBillboard = new Billboard(XMFLOAT3(0.0f, -0.5f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(90.0f, 0.0f, 0.0f), "asset\\texture\\tex.png", false);
+	g_pFloorBillboard = new Billboard(XMFLOAT3(0.0f, -0.5f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(90.0f, 0.0f, 0.0f), "asset\\texture\\cement.jpg", false);
 	g_pFloorBillboard->SetBillboardMode(false);
 	// 床だけShadowReceiveシェーダーを使い、ShadowMapから影を受け取る。
 	g_pFloorBillboard->SetReceiveShadow(true);
+	// NormalMapのテスト。床の法線をピクセルごとに変えて、ライトの当たり方に凹凸を出す。
+	g_pFloorBillboard->SetNormalMap("asset\\texture\\Normal.png");
 
 	// 原点表示用キューブモデルの読み込み
 	g_pCubeModel = ModelLoad("asset\\model\\cube.fbx");

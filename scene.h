@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <string>
+
 enum SCENE {
 	SCENE_TITLE = 0,
 	SCENE_STAGESELECT,
@@ -17,3 +19,5 @@ void Finalize(void);
 
 void SetScene(SCENE id);
 SCENE GetScene(void);
+void SetPlayJson(const std::string& jsonName);
+const std::string& GetPlayJson(void);

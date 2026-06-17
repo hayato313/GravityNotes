@@ -9,6 +9,7 @@
 #include "mouse.h"
 #include "sound.h"
 #include "ClickFont.h"
+#include "scene.h"
 
 using namespace DirectX;
 
@@ -48,6 +49,7 @@ void Result_Update(void)
 	//ClickFontがクリックされた
 	if (g_pChangeSceneText->IsClick())
 	{
+		SetPlayJson("");
 		SetSceneFade(SCENE_TITLE);
 	}
 }

@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="barrier_note.cpp" />
     <ClCompile Include="debugscene\debugcamera.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -164,6 +165,9 @@
     <ClCompile Include="debugscene\debug_model_scene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="debugscene\debugrigplayer.cpp" />
+    <ClCompile Include="debug_ui.cpp" />
+    <ClCompile Include="enemy_note.cpp" />
     <ClCompile Include="field.cpp" />
     <ClCompile Include="framework\anim_sprite3d.cpp" />
     <ClCompile Include="framework\billboard.cpp" />
@@ -190,13 +194,18 @@
     <ClCompile Include="framework\input_manager.cpp" />
     <ClCompile Include="framework\main.cpp" />
     <ClCompile Include="framework\model.cpp" />
+    <ClCompile Include="framework\MultiLineClickFont.cpp" />
+    <ClCompile Include="framework\MultiLineFontRenderer.cpp" />
     <ClCompile Include="framework\movie.cpp" />
     <ClCompile Include="framework\sound.cpp" />
     <ClCompile Include="framework\sprite2d.cpp" />
     <ClCompile Include="framework\texture.cpp" />
-    <ClCompile Include="komachi\debug_ui.cpp" />
+    <ClCompile Include="gamecamera.cpp" />
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="note_base.cpp" />
+    <ClCompile Include="note_manager.cpp" />
+    <ClCompile Include="orb_note.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="scene.cpp" />
@@ -205,6 +214,7 @@
     <ClCompile Include="title.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="barrier_note.h" />
     <ClInclude Include="debugscene\debugcamera.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -216,7 +226,11 @@
     <ClInclude Include="debugscene\debug_model_scene.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="debugscene\debugrigplayer.h" />
+    <ClInclude Include="debug_params.h" />
+    <ClInclude Include="debug_ui.h" />
     <ClInclude Include="define.h" />
+    <ClInclude Include="enemy_note.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="framework\anim_sprite3d.h" />
     <ClInclude Include="framework\billboard.h" />
@@ -248,20 +262,26 @@
     <ClInclude Include="framework\input_manager.h" />
     <ClInclude Include="framework\main.h" />
     <ClInclude Include="framework\model.h" />
+    <ClInclude Include="framework\MultiLineClickFont.h" />
+    <ClInclude Include="framework\MultiLineFontRenderer.h" />
     <ClInclude Include="framework\movie.h" />
     <ClInclude Include="framework\sound.h" />
     <ClInclude Include="framework\sprite2d.h" />
     <ClInclude Include="framework\sprite3d.h" />
     <ClInclude Include="framework\stb_truetype.h" />
     <ClInclude Include="framework\texture.h" />
-    <ClInclude Include="komachi\debug_params.h" />
-    <ClInclude Include="komachi\debug_ui.h" />
+    <ClInclude Include="gamecamera.h" />
+    <ClInclude Include="mathhelper.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="note_base.h" />
+    <ClInclude Include="note_manager.h" />
+    <ClInclude Include="orb_note.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="scoreloader.h" />
+    <ClInclude Include="scoresummaryloader.h" />
     <ClInclude Include="stageselect.h" />
     <ClInclude Include="shader\shadermanager.h" />
     <ClInclude Include="shader\renderer.h" />
@@ -269,6 +289,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="framework\DirectXTex.inl" />
+    <None Include="markdown\anim_sprite3d_usage.md" />
     <None Include="markdown\direct3d_viewport_resize_spec.md" />
     <None Include="markdown\nonexistent_apis.md" />
     <None Include="markdown\shader_vertex_skinning_spec.md" />
@@ -435,6 +456,34 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="shader\ShadowReceiveVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="shader\NormalMapShadowReceivePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="shader\NormalMapShadowReceiveVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)shader\%(Filename).cso</ObjectFileOutput>

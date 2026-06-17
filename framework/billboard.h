@@ -24,6 +24,9 @@ public:
 	// 任意の画像パスを指定したい場合用
 	void SetTexture(const char* texturePath);
 
+	// NormalMapを使いたい場合用。床のテストでは asset\texture\Normal.png を渡す。
+	void SetNormalMap(const char* texturePath);
+
 
 	// --- UVアニメーション ---
 	// frameCount: 横方向のコマ数, interval: 1コマあたりの秒数
@@ -65,7 +68,9 @@ public:
 private:
 	ID3D11Buffer* m_VertexBuffer;
 	ID3D11ShaderResourceView* m_Texture;
+	ID3D11ShaderResourceView* m_NormalTexture;
 	std::string m_TexturePath; // 現在ロード済みのテクスチャパス（再ロード防止用）
+	std::string m_NormalTexturePath; // 現在ロード済みのNormalMapパス
 
 	XMFLOAT3 m_Pos;
 	XMFLOAT2 m_Size;

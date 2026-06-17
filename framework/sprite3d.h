@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <d3d11.h>
 #include "renderer.h"
@@ -22,6 +22,12 @@ protected:
 	bool m_UseOriginalColor;
 	SHADERTYPE m_ShaderType;
 public:
+	Sprite3D() : Transform3D(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f)), m_Model(nullptr), m_GlbModel(nullptr), m_IsGlb(false),
+		  m_ModelSize(0.0f, 0.0f, 0.0f), m_Color(1.0f, 1.0f, 1.0f, 1.0f),
+		  m_OriginalColor(1.0f, 1.0f, 1.0f, 1.0f), m_UseOriginalColor(true), m_ShaderType(S_UNLIT)
+	{
+	}
+
 	Sprite3D(const XMFLOAT3& pos, const XMFLOAT3& scale, const XMFLOAT3& rot, const char* pass, SHADERTYPE st)
 		: Transform3D(pos, rot, scale), m_Model(nullptr), m_GlbModel(nullptr), m_IsGlb(false),
 		  m_Color(1.0f, 1.0f, 1.0f, 1.0f),

@@ -11,9 +11,8 @@
 enum class ScoreType
 {
 	Enemy,
-	Obstacle,
-	Gravity,
-	Jump
+	Barrier,
+	Orb
 };
 
 enum class ScoreWall
@@ -34,9 +33,9 @@ inline ScoreType ParseScoreType(const std::string& value)
 {
 	const std::string token = NormalizeScoreToken(value);
 	if (token == "enemy") return ScoreType::Enemy;
-	if (token == "obstacle") return ScoreType::Obstacle;
-	if (token == "gravity") return ScoreType::Gravity;
-	if (token == "jump") return ScoreType::Jump;
+	if (token == "barrier") return ScoreType::Barrier;
+	if (token == "orb") return ScoreType::Orb;
+
 	throw std::runtime_error("Invalid score type: " + value);
 }
 

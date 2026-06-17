@@ -48,9 +48,9 @@ public:
 				 XMFLOAT4 color, const std::string& text);
 	~FontRenderer();
 
-	void Draw();
+	virtual void Draw();
 	void SetColor(XMFLOAT4 color) { m_Color = color; UpdateAtlasTexture(); }
-	void SetText(const std::string& text);
+	virtual void SetText(const std::string& text);
 	XMFLOAT4 GetColor() const { return m_Color; }
 
 	// テキスト中のグリフを事前にアトラスへ登録（描画時のスタッター防止）

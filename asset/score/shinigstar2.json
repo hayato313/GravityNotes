@@ -1,0 +1,441 @@
+{
+	"musicname": "シャイニングスター",
+	"musicauthor": "森田交一",
+	"scoreauthor": "S.S",
+	"difficulty": 5.0,
+	"bpm": 158.0,
+	"thumbnail": "shiningstar.png",
+	"music": "maou_14_shining_star.mp3",
+	"events": [
+		{
+			"beat": 0.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 1.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 2.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 3.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 3.5,
+			"endBeat": 4.0,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 4.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 5.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 5.5,
+			"endBeat": 6.0,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 7.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 7.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 6.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 8.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 9.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 10.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 11.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 11.5,
+			"endBeat": 12.0,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 12.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 13.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 14.0,
+			"endBeat": 16.0,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 20.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 20.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 21.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 21.5,
+			"endBeat": 22.5,
+			"endWall": "Left",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Left"
+		},
+		{
+			"beat": 24.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 25.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 26.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 27.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 28.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 28.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 29.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 29.5,
+			"endBeat": 30.0,
+			"endWall": "Left",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Left"
+		},
+		{
+			"beat": 30.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 31.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Left"
+		},
+		{
+			"beat": 36.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 36.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 37.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 37.5,
+			"endBeat": 38.5,
+			"endWall": "Right",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Right"
+		},
+		{
+			"beat": 40.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 42.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 41.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 43.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 43.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 44.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 45.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 46.0,
+			"endBeat": 47.5,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Right"
+		},
+		{
+			"beat": 63.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 64.0,
+			"endBeat": 65.0,
+			"endWall": "Right",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Right"
+		},
+		{
+			"beat": 65.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 67.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 66.0,
+			"endBeat": 67.0,
+			"endWall": "Right",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Right"
+		},
+		{
+			"beat": 68.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 68.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 69.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 69.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Right"
+		},
+		{
+			"beat": 70.0,
+			"endBeat": 71.0,
+			"endWall": "Right",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Right"
+		},
+		{
+			"beat": 48.0,
+			"endBeat": 49.0,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 51.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 49.5,
+			"endBeat": 50.5,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 52.0,
+			"endBeat": 53.0,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 53.5,
+			"endBeat": 54.5,
+			"endWall": "Down",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Down"
+		},
+		{
+			"beat": 55.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Down"
+		},
+		{
+			"beat": 59.5,
+			"endBeat": 60.0,
+			"endWall": "Up",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Up"
+		},
+		{
+			"beat": 60.5,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Up"
+		},
+		{
+			"beat": 61.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Up"
+		},
+		{
+			"beat": 61.5,
+			"endBeat": 62.5,
+			"endWall": "Up",
+			"lane": 1,
+			"type": "Hold",
+			"wall": "Up"
+		},
+		{
+			"beat": 63.0,
+			"lane": 1,
+			"type": "Tap",
+			"wall": "Up"
+		}
+	]
+}

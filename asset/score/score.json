@@ -1,0 +1,24 @@
+{
+	"bpm": 120,
+	"music": "",
+	"events": [
+		{
+			"beat": 4.0,
+			"lane": 0,
+			"type": "enemy",
+			"wall": "down"
+		},
+		{
+			"beat": 6.0,
+			"lane": 1,
+			"type": "orb",
+			"wall": "down"
+		},
+		{
+			"beat": 8.0,
+			"lane": 0,
+			"type": "barrier",
+			"wall": "down"
+		}
+	]
+}

@@ -218,9 +218,7 @@ namespace
 		switch (type)
 		{
 		case ScoreType::Enemy:    return XMFLOAT4(1.0f, 0.35f, 0.35f, 0.95f);
-		case ScoreType::Obstacle: return XMFLOAT4(1.0f, 0.85f, 0.25f, 0.95f);
-		case ScoreType::Gravity:  return XMFLOAT4(0.35f, 0.65f, 1.0f, 0.95f);
-		case ScoreType::Jump:     return XMFLOAT4(0.35f, 1.0f, 0.55f, 0.95f);
+		case ScoreType::Barrier: return XMFLOAT4(1.0f, 0.85f, 0.25f, 0.95f);
 		default:                  return XMFLOAT4(1.0f, 1.0f, 1.0f, 0.95f);
 		}
 	}
